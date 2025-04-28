@@ -526,51 +526,10 @@
 #   ldap_kdc_sasl_mech = GSSAPI | EXTERNAL | DIGEST-MD5 #   Specify the SASL authentication mechanism the KDC uses to bind to LDAP. Options are 
 #                                                       #       * GSSAPI: Selfexplanatory 
 #                                                       #       * EXTERNAL: Use credentials from an external source, such as TLS client certificates to auth to LDAP
-#                                                       #       * DIGEST-MD5: SASL mechanism that authenticates by hashing username and password, without sending them in plaintext.
-#   ldap_kadmind_sasl_mech = GSSAPI | EXTERNAL | DIGEST-MD5
-#                                                       #   Specify the SASL authentication mechanism kadmind uses to bind to LDAP. Options are 
-#                                                       #       * GSSAPI: Selfexplanatory 
-#                                                       #       * EXTERNAL: The Kerberos library uses credentials from an external source, such as TLS client certificates, to auth to LDAP
-#                                                       #       * DIGEST-MD5: The Kerberos library uses the SASL mechanism to authenticate to LDAP 
-#                                                       #           by hashing username and password, without sending them in plaintext.
-#                                                       #
-#   ldap_kdc_sasl_authcid = kdc-ldap-user ( NULL )      #   Set the SASL authentication identity (username) the KDC will use when binding to LDAP. No default, up to you, value is an example.
-#                                                       #
-#   ldap_kadmind_sasl_authcid = kdc-ldap-user ( NULL )  #   Set the ASL authentication identity (username) kadmind will use when binding to LDAP. No default, up to you, value is an example.
-#                                                       #
-#   ldap_kdc_sasl_authzid = dn:<Distinguished Name> | u:<username>
-#                                                       #   Specify the authorization identity the KDC wants to assume after authenticating. Optional; used if the identity to act as differs
-#                                                       #   from the authcid. This is done to separate authentication (prove identity) from authorization (what role it acts as).
-#                                                       #   Example: authenticate as bind-user, but authorize as cn=kdc-service,dc=example,dc=com to access LDAP entries with service rights.
-#   ldap_kadmind_sasl_authzid = dn:<Distinguished Name> | u:<username>
-#                                                       #   Specify the authorization identity kadmind wants to assume after authenticating. Optional; used if the identity to act as differs
-#                                                       #   from the authcid. This is done to separate authentication (prove identity) from authorization (what role it acts as).
-#                                                       #   Example: authenticate as bind-user, but authorize as cn=kdc-service,dc=example,dc=com to access LDAP entries with service rights.
-#                                                       #
-#   ldap_kdc_sasl_realm = EXAMPLE.COM ( NULL )          #   Set the SASL realm for authentication. Used when `ldap_kdc_sasl_mech` is set to  DIGEST-MD5.
-#                                                       #
-#   ldap_kadmind_sasl_realm = EXAMPLE.COM ( NULL )      #   Set the SASL realm for authentication. Used when `ldap_kadmind_sasl_mech` is set to  DIGEST-MD5.
-#                                                       #
-#   ldap_kerberos_container_dn = cn=krbcontainer,dc=example,dc=com.
-#                                                       #   Define the LDA Distinguished Name (DN)  where Kerberos objects (principals, policies) are stored inside the LDAP directory.
-#                                                       #   No default, up to you, value is an example.
-#                                                       #
-#   ldap_servers =  ldaps://ldap1.example.com ldaps://ldap2.example.com
-#                                                       #   Whitespace list of LDAP URIs. Kerberos manages to be inconsistent yet again. Use of ldapi: or ldaps: is recommended.
-#                                                       #
-#   ldap_service_password_file = /etc/kerberos/ldap_service.keyfile
-#                                                       #   Specify a file storing LDAP service principal passwords securely. Make sure you chmod 0600 and xatrrib this.
-#                                                       #   Objects using these are `ldap_kdc_dn`, `ldap_kadmind_dn`, `ldap_kdc_sasl_authcid, `ldap_kadmind_sasl_authcid`.
-#                                                       #   Passwords are being dreated by 'kdb5_ldap_util stashsrvpw'
-#                                                       #
-#   mapsize = 256 ( 128 )                               #   Only applies if using DB2 or LMDB as a local backend: Set the maximum memory-mapped file size for the DB2 database.
-#                                                       #   Documentation is talking about "Two database environments". It means the main Kerberos principal database and policies database
-#                                                       #   each stored in a separate LMDB (.mdb) file, if LMDB is the backend.
-#                                                       #   Higher values support more principal entries without resizing the database file.
-#                                                       #   If you come across the "Environment mapsize limit reached" error, increase the value. 
-#                                                       #   See FURTHER DISCUSSION: HOW TO REBUILD THE DB2/LMDB BACKEND for more information.
-#                                                       #   Size is MB.
+#                                                       #       * DIGEST-MD5:  SASL mechanism that authenticates by hashing username and password, without sending them in plaintext.
 #
+#
+#   
 # } # end of DB2_EXAMPLE.COM database module
 #
 # [logging]            # Control how the krb5kdc(8) and kadmind(8) daemons and the kdb5_util(8) perform logging
@@ -717,29 +676,12 @@
 #   The reason for all these are to prove the identity of the user/client before the KDC issues a ticket.
 #
 ##########################################################################
-# FURTHER DISCUSSION: HOW TO REBUILD THE DB2/LMDB BACKEND 
-##########################################################################
-#
-#   There are no command-line tools to do this task.
-#
-#   For DB2:
-#       * Rebuild manually with a bigger mapsize:
-#           * Dump the db via `/usr/sbin/kdb5_ldap_util dump /path/to/file`
-#           * Move/delete the existing file
-#           * Load the dump via `/usr/sbin/kdb5_ldap_util /path/to/file`
-#   For LMDB:
-#       * Adjust mapsize in config.
-#       * Restart KDC — LMDB automatically resizes the mapping (no dump/load needed).
-#
-##########################################################################
 # FURTHER DISCUSSION: 
-#   WHAT TOOLS IS A KERBEROS COMPRISED OF
+#   WHAT TOOLS IS A KERBEROS DOMAIN CONTROLER COMPRISED OF
 ##########################################################################
 #
 # A KDC comprises of these tools:
-#   * /usr/bin/kadmin:              the Kerberos command-line tool for administering the KDC database (create, modify, delete principals, etc.).
-#   * /usr/sbin/kdb5_ldap_util:     command-line tool to manage the LDAP Kerberos database backend: create, modify, destroy realms and entries in LDAP. LDAP equivalent of kdb5_util. 
-#
+#   * /usr/bin/kadmin: the Kerberos command-line tool for administering the KDC database (create, modify, delete principals, etc.).
 ##########################################################################
 # SETUP FOR MARSEL.IS
 ##########################################################################

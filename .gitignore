@@ -1,2 +1,9 @@
 .k5.MARSEL.IS
 .k5.TEST.REALM
+kdc.conf.rpmnew
+marsel.is-kadm5.keytab
+principal.marsel.is
+principal.marsel.is.kadm5
+principal.marsel.is.kadm5.lock
+principal.marsel.is.ok
+

@@ -1,0 +1,261 @@
+critique on kerberos
+
+Here is the thorough critique, strictly mechanical, zero flattery, zero smoothing, only structural faults and inconsistencies, with citations to exact file parts.
+
+I will be succinct, but this is a full critique, so density is high.
+
+1. STRUCTURAL ISSUES
+1.1. Repetition and duplication
+
+The document repeats large blocks almost verbatim:
+
+Backend comparison tables appear twice .
+
+PKINIT explanation appears twice in slightly different forms .
+
+This inflates size unnecessarily and risks the two copies drifting out of sync.
+
+1.2. The “tool list” sections are incomplete
+
+Under 4.14.x many “What does it do” subsections are placeholders with no actual content, e.g. kinit, kdestroy, klist, etc.
+All show repeated boilerplate:
+“We have extensively talked about…” but no actual summary.
+Examples: 
+
+marsel.is.kdc (1)
+
+.
+
+These gaps break the flow.
+
+1.3. Interleaving example realms + production realm
+
+The example realms (TEST.REALM, FOO.BAR) exist in multiple places and mix with actual MARSEL.IS configuration.
+This makes it harder for juniors to tell which parts are production-relevant.
+Example mixture: 
+
+marsel.is.kdc (1)
+
+.
+
+1.4. Section headings are repeated
+
+Sections STRUCTURE, SECTIONS, VARIABLES, etc., appear twice in the file (beginning and near the end) due to concatenation of multiple drafts.
+Example: duplicates at 
+
+marsel.is.kdc (1)
+
+ and again at 
+
+marsel.is.kdc (1)
+
+.
+
+2. TECHNICAL ACCURACY ISSUES
+2.1. “special disables password, forces PKINIT”
+
+This is correct, but the file attributes it to an implied MIT behavior and includes emotionally charged commentary.
+Better to reference the internal flag properly.
+
+Current commentary:
+“WHAT THE FUCKETY FUCK… go read preauth2.c…” 
+
+marsel.is.kdc (1)
+
+.
+Mechanically correct, but presentation disrupts clarity.
+
+2.2. admin_keytab
+
+The file correctly notes admin_keytab was removed in 1.18 and cannot be set in kdc.conf.
+However, it appears again in MARSEL.IS realm example as a live directive:
+admin_keytab = /var/kerberos/... 
+
+marsel.is.kdc (1)
+
+.
+
+This contradicts the earlier warning and may mislead juniors.
+
+2.3. db2_marsel.is backend
+
+You set:
+
+db_library = db2
+database_name = /var/kerberos/krb5kdc/principal.marsel.is
+
+
+But in the main realm block, you have:
+database_module = db2_marsel.is 
+
+marsel.is.kdc (1)
+
+.
+
+This is valid only if kdb5_util was initialized with matching DB name. You do not show that. Missing cross-reference.
+
+2.4. missing default_realm in krb5.conf
+
+The doc states that krb5kdc will fail without default_realm in krb5.conf. Correct.
+But the MARSEL.IS section never restates this requirement or points the reader back to krb5.conf.
+This may cause confusion for juniors.
+
+2.5. “Kerberos will not care for non-default realms”
+
+Correct statement, but you also say:
+
+“I’m not so sure multi-realm configs are worth it” 
+
+marsel.is.kdc (1)
+
+.
+
+This is opinion, not fact. Might need labeling as such.
+
+3. STYLE / TONE ISSUES (technical impact)
+
+Not moralizing, only describing mechanical risk:
+
+3.1. Excess profanity reduces scanning efficiency
+
+There are multiple sections where commentary becomes emotional (“dogshit documentation”, “fucketty fuck”, “parser blowing chunks”) 
+
+marsel.is.kdc (1)
+
+.
+While expressive, this reduces signal and may distract readers trying to extract mechanics.
+
+3.2. Sarcasm inside explanations
+
+Example:
+“Parsing was invented yesterday, apparently.” 
+
+marsel.is.kdc (1)
+
+.
+This may make juniors think behavior is unpredictable rather than deterministic.
+
+3.3. Declarative statements mixed with jokes
+
+Example:
+“indicator = mfa, otp, your mom…” 
+
+marsel.is.kdc (1)
+
+.
+This risks juniors copying it literally into config.
+
+4. ORGANIZATIONAL GAPS
+4.1. No consolidated “Final Working MARSEL.IS config”
+
+You have an excellent exhaustive commentary, but the actual final config is fragmented.
+MARSEL.IS appears only in one section at the end and lacks PKINIT + OTP examples, which you earlier promised.
+
+4.2. Missing cross-realm examples
+
+The TODO list mentions it:
+
+“No multi-realm/cross-realm trust config” 
+
+marsel.is.kdc (1)
+
+.
+
+This is a real gap.
+Cross-realm trust is one of the most common real-world tasks.
+
+4.3. Missing “unfuck a keytab” procedures
+
+Sections 5.2.1 and 5.2.2 exist but contain no content.
+Examples: 
+
+marsel.is.kdc (1)
+
+.
+
+These are actually the sections juniors will look for most.
+
+4.4. Backend table appears twice
+
+Already noted, but causes consistency risk.
+
+5. CONTENT GAPS (mechanical, not subjective)
+5.1. No FAST armor examples
+
+You explain FAST, but no working example of armor TGT usage.
+
+5.2. Missing kdb5_util realm initialization sequence
+
+You describe symptoms of missing DB, but not the step-by-step process for initializing LMDB or DB2 with the example realm.
+
+5.3. Missing plugin module section
+
+OTP via RADIUS requires plugins, but your [plugins] section is absent.
+This is only indirectly referenced.
+
+6. MARSEL.IS CONFIG SPECIFIC CRITIQUE
+
+Located at: 
+
+marsel.is.kdc (1)
+
+.
+
+6.1. You declare no pkinit_identity
+
+Yet you spent 400+ lines explaining PKINIT.
+Either add PKINIT to MARSEL.IS or state “PKINIT disabled in this example”.
+
+6.2. disable_last_success = true
+
+You included it inside dbmodule, not realm.
+Correct placement depends on backend, but you should clarify why MARSEL.IS disables last_success tracking.
+
+6.3. No OTP section for MARSEL.IS
+
+You leave [otp marsel.is] commented.
+Given the heavy OTP discussion, this is an inconsistency.
+
+6.4. No explanation of security implications of aes256-cts-hmac-sha1-96
+
+You use this enctype.
+Modern deployments prefer aes256-sha384 or SHA-2 variants.
+This requires justification.
+
+7. WHAT IS EXCELLENT (mechanically relevant)
+
+I will only state mechanical strengths:
+
+The file is exhaustive, covering every parameter with real-world commentary.
+
+It meticulously documents MIT Kerberos parser quirks.
+
+It correctly explains PKINIT pitfalls where the official docs fail.
+
+It includes backend comparison matrices with accurate mechanical constraints.
+
+It demonstrates correct awareness of OTP plugin dependencies.
+
+These strengths explain why the file has no conceptual gaps—only structure and consistency gaps.
+
+SUMMARY OF CRITIQUE
+
+Key issues requiring correction:
+
+Remove duplicated sections.
+
+Fill the “What does it do” tool subsections.
+
+Produce a single clean final MARSEL.IS config.
+
+Resolve contradiction about admin_keytab.
+
+Add missing OTP + PKINIT examples.
+
+Add missing procedure sections (“unfuck a keytab”, etc.).
+
+Reduce sarcasm where it interferes with junior readability.
+
+Clarify backend initialization steps.
+
+Confidence: 94%
